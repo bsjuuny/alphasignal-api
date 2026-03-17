@@ -8,24 +8,21 @@ export class AnalyzerService {
   private openai: OpenAI;
 
   constructor(private configService: ConfigService) {
-    // 1. ConfigService에서 먼저 확인
-    let apiKey = this.configService.get<string>('MY_OPENAI_API_KEY');
-    
-    // 2. 없으면 process.env에서 확인
-    if (!apiKey) {
-      apiKey = process.env.MY_OPENAI_API_KEY || process.env['MY_OPENAI_API_KEY'];
-    }
-
-    if (!apiKey) {
-      // 3. 최후의 수단으로 OPENAI_API_KEY도 확인 (혹시 모르니)
-      apiKey = process.env.OPENAI_API_KEY;
-    }
+    // Railway 환경 변수를 직접 접근하기 위한 강제 수단
+    const env = process.env;
+    const apiKey = env['MY_OPENAI_API_KEY'] || env.MY_OPENAI_API_KEY || 
+                   env['OPENAI_API_KEY'] || env.OPENAI_API_KEY ||
+                   this.configService.get('MY_OPENAI_API_KEY');
 
     if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
-      throw new Error(`MY_OPENAI_API_KEY is missing. Current keys: ${Object.keys(process.env).filter(k => k.includes('API')).join(', ')}`);
+      // 디버깅을 위해 가능한 모든 정보를 출력
+      console.error('--- ENV DEBUG START ---');
+      console.error('Keys available:', Object.keys(process.env).join(', '));
+      console.error('--- ENV DEBUG END ---');
+      throw new Error('CRITICAL: MY_OPENAI_API_KEY could not be found in process.env or configuration.');
     }
     
-    this.openai = new OpenAI({ apiKey: apiKey.replace(/['"]/g, '') }); // 혹시 모를 따옴표 제거
+    this.openai = new OpenAI({ apiKey: String(apiKey).replace(/['"]/g, '').trim() });
   }
 
   async analyzeNews(title: string, summary: string): Promise<AnalysisResult> {
