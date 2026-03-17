@@ -15,6 +15,7 @@ import { NewsModule } from './modules/news/news.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
     ScheduleModule.forRoot(),
     CollectorModule,
