@@ -115,10 +115,16 @@ export class CollectorService {
       confidence = 0.7 + (Math.abs(analysis.sentimentScore) * 0.2);
     }
 
+    // 종목코드 정제
+    let sanitizedSymbol = analysis.stockCode ? String(analysis.stockCode).trim() : null;
+    if (sanitizedSymbol === '코드 없음' || sanitizedSymbol === 'null' || sanitizedSymbol === 'undefined') {
+      sanitizedSymbol = null;
+    }
+
     await this.prisma.signal.create({
       data: {
         newsId,
-        symbol: analysis.stockCode,
+        symbol: sanitizedSymbol,
         companyName: analysis.companyName,
         action,
         score: Math.min(Math.round(score), 100),

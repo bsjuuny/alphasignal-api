@@ -21,11 +21,17 @@ let AnalyzerService = class AnalyzerService {
     openai;
     constructor(configService) {
         this.configService = configService;
-        const apiKey = this.configService.get('OPENAI_API_KEY');
-        if (!apiKey) {
-            throw new Error('OPENAI_API_KEY is not defined in configuration.');
+        const env = process.env;
+        const apiKey = env['MY_OPENAI_API_KEY'] || env.MY_OPENAI_API_KEY ||
+            env['OPENAI_API_KEY'] || env.OPENAI_API_KEY ||
+            this.configService.get('MY_OPENAI_API_KEY');
+        if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
+            console.error('--- ENV DEBUG START ---');
+            console.error('Keys available:', Object.keys(process.env).join(', '));
+            console.error('--- ENV DEBUG END ---');
+            throw new Error('CRITICAL: MY_OPENAI_API_KEY could not be found in process.env or configuration.');
         }
-        this.openai = new openai_1.default({ apiKey });
+        this.openai = new openai_1.default({ apiKey: String(apiKey).replace(/['"]/g, '').trim() });
     }
     async analyzeNews(title, summary) {
         const prompt = `당신은 금융 뉴스 분석 전문가이자 20년 경력의 퀀트 트레이더입니다. 

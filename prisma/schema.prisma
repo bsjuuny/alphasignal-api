@@ -36,7 +36,7 @@ model Signal {
   id             String   @id @default(uuid())
   newsId         String
   news           News     @relation(fields: [newsId], references: [id])
-  symbol         String   // E.g., 005930 for Samsung
+  symbol         String?  // E.g., 005930 for Samsung
   companyName    String?
   action         String   // BUY, HOLD, SELL
   score          Int      // 0-100
