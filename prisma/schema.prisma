@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model News {
+  id             String   @id @default(uuid())
+  title          String
+  summary        String
+  content        String?  @db.Text
+  source         String
+  url            String   @unique
+  publishedAt    DateTime
+  sentiment      String   // POSITIVE, NEUTRAL, NEGATIVE
+  sentimentScore Float    @default(0)
+  impact         Int      @default(3) // 1-5
+  category       String   // MACRO, SECTOR, COMPANY
+  keywords       String[]
+  signals        Signal[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([publishedAt])
+  @@index([sentiment])
+  @@index([category])
+}
+
+model Signal {
+  id             String   @id @default(uuid())
+  newsId         String
+  news           News     @relation(fields: [newsId], references: [id])
+  symbol         String   // E.g., 005930 for Samsung
+  companyName    String?
+  action         String   // BUY, HOLD, SELL
+  score          Int      // 0-100
+  confidence     Float
+  createdAt      DateTime @default(now())
+
+  @@index([symbol])
+  @@index([action])
+}
+
+model Theme {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  newsCount Int      @default(0)
+  score     Float    @default(0)
+  keywords  String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([score])
+}
