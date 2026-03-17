@@ -8,11 +8,24 @@ export class AnalyzerService {
   private openai: OpenAI;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('MY_OPENAI_API_KEY') || process.env.MY_OPENAI_API_KEY;
+    // 1. ConfigService에서 먼저 확인
+    let apiKey = this.configService.get<string>('MY_OPENAI_API_KEY');
+    
+    // 2. 없으면 process.env에서 확인
     if (!apiKey) {
-      throw new Error('MY_OPENAI_API_KEY is not defined in configuration.');
+      apiKey = process.env.MY_OPENAI_API_KEY || process.env['MY_OPENAI_API_KEY'];
     }
-    this.openai = new OpenAI({ apiKey });
+
+    if (!apiKey) {
+      // 3. 최후의 수단으로 OPENAI_API_KEY도 확인 (혹시 모르니)
+      apiKey = process.env.OPENAI_API_KEY;
+    }
+
+    if (!apiKey || apiKey === 'undefined' || apiKey === 'null') {
+      throw new Error(`MY_OPENAI_API_KEY is missing. Current keys: ${Object.keys(process.env).filter(k => k.includes('API')).join(', ')}`);
+    }
+    
+    this.openai = new OpenAI({ apiKey: apiKey.replace(/['"]/g, '') }); // 혹시 모를 따옴표 제거
   }
 
   async analyzeNews(title: string, summary: string): Promise<AnalysisResult> {
