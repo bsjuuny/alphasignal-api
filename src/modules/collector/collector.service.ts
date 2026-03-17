@@ -75,7 +75,21 @@ export class CollectorService {
 
       // If it's a company news, generate signal
       if (analysis.stockCode && analysis.companyName) {
-        await this.generateSignal(savedNews.id, analysis);
+        // 동일 종목에 대해 최근 1시간 내에 생성된 동일한 액션이 있는지 확인 (중복 방지)
+        const recentSignal = await this.prisma.signal.findFirst({
+          where: {
+            symbol: analysis.stockCode,
+            createdAt: {
+              gte: new Date(Date.now() - 60 * 60 * 1000), // 최근 1시간
+            },
+          },
+        });
+
+        if (!recentSignal) {
+          await this.generateSignal(savedNews.id, analysis);
+        } else {
+          this.logger.log(`Skipping duplicate signal for ${analysis.companyName} (${analysis.stockCode}) within 1 hour`);
+        }
       }
     } catch (error) {
       this.logger.error(`Failed to process news item ${item.title}: ${error.message}`);
