@@ -5,24 +5,34 @@ import { PrismaService } from '../prisma/prisma.service';
 export class SignalService {
   constructor(private prisma: PrismaService) {}
 
+  private getTodayRange() {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    return { gte: start, lte: end };
+  }
+
   async getLatestSignals() {
     return this.prisma.signal.findMany({
+      where: { createdAt: this.getTodayRange() },
       orderBy: { createdAt: 'desc' },
-      take: 20,
-      include: {
-        news: true,
-      },
+      include: { news: true },
     });
   }
 
   async getBuySignals() {
     return this.prisma.signal.findMany({
-      where: { action: 'BUY' },
+      where: { action: 'BUY', createdAt: this.getTodayRange() },
       orderBy: { createdAt: 'desc' },
-      take: 10,
-      include: {
-        news: true,
-      },
+      include: { news: true },
+    });
+  }
+
+  async getAllSignals() {
+    return this.prisma.signal.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: { news: true },
     });
   }
 }

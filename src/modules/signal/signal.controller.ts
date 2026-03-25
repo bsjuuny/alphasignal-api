@@ -14,4 +14,9 @@ export class SignalController {
   async getBuySignals() {
     return this.signalService.getBuySignals();
   }
+
+  @Get('all')
+  async getAllSignals() {
+    return this.signalService.getAllSignals();
+  }
 }
