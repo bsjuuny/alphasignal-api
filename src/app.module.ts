@@ -10,6 +10,7 @@ import { ThemeModule } from './modules/theme/theme.module';
 import { MarketModule } from './modules/market/market.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { NewsModule } from './modules/news/news.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { NewsModule } from './modules/news/news.module';
     MarketModule,
     PrismaModule,
     NewsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
